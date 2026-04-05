@@ -1,6 +1,7 @@
 import { useScrollDirection } from "@/hooks/useScrollDirection";
-import { Leaf, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import logoImg from "@/assets/cropsense-logo.png";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -21,12 +22,13 @@ const Navbar = () => {
         isHidden ? "-translate-y-full" : "translate-y-0"
       } ${hasBg ? "bg-background/90 backdrop-blur-md shadow-sm" : "bg-transparent"}`}
     >
-      <div className="container mx-auto flex items-center justify-between py-4 px-6">
+      <div className="container mx-auto flex items-center justify-between py-3 px-6">
         <a href="#" className="flex items-center gap-2 group">
-          <Leaf className="h-7 w-7 text-primary transition-transform duration-300 group-hover:rotate-12" />
-          <span className={`font-display text-xl font-bold tracking-tight ${hasBg ? "text-foreground" : "text-primary-foreground"}`}>
-            CropSense
-          </span>
+          <img
+            src={logoImg}
+            alt="CropSense Logo"
+            className="h-10 w-auto mix-blend-multiply drop-shadow-sm"
+          />
         </a>
 
         <div className="hidden md:flex items-center gap-8">
