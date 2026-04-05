@@ -7,18 +7,18 @@ import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/auth/AuthModal";
 
 const navLinks = [
-  { label: "About", href: "#about" },
-  { label: "Gallery", href: "#gallery" },
-  { label: "Impact", href: "#stats" },
-  { label: "Join Us", href: "#cta" },
+  { label: "About", href: "/#about" },
+  { label: "Gallery", href: "/#gallery" },
+  { label: "Impact", href: "/#stats" },
+  { label: "Join Us", href: "/#cta" },
 ];
 
-const Navbar = () => {
+const Navbar = ({ alwaysOpaque = false }: { alwaysOpaque?: boolean }) => {
   const { scrollDirection, scrollY } = useScrollDirection();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, isModalOpen, modalMode, openModal, closeModal } = useAuth();
   const isHidden = scrollDirection === "down" && scrollY > 100;
-  const hasBg = scrollY > 50;
+  const hasBg = scrollY > 50 || alwaysOpaque;
 
   return (
     <>
