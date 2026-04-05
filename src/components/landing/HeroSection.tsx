@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
@@ -24,7 +25,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-4 font-body text-sm font-semibold uppercase tracking-[0.3em] text-harvest"
+          className="mb-4 font-body text-base font-bold uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
         >
           Intelligent Agriculture
         </motion.p>
@@ -33,17 +34,17 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="max-w-4xl font-display text-5xl font-bold leading-tight text-primary-foreground md:text-7xl lg:text-8xl"
+          className="max-w-4xl font-display text-5xl font-bold leading-tight text-white md:text-7xl lg:text-8xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
         >
           Grow Smarter,{" "}
-          <span className="italic text-harvest">Harvest</span> Better
+          <span className="italic text-harvest drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">Harvest</span> Better
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="mt-6 max-w-xl font-body text-lg leading-relaxed text-primary-foreground/80"
+          className="mt-6 max-w-xl font-body text-lg leading-relaxed text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
         >
           CropSense empowers farmers with AI-driven insights to maximize yield,
           minimize waste, and build a food-secure future.
@@ -55,12 +56,12 @@ const HeroSection = () => {
           transition={{ duration: 0.6, delay: 1 }}
           className="mt-10 flex gap-4"
         >
-          <a
-            href="#gallery"
+          <Link
+            to="/explore"
             className="rounded-full bg-primary px-8 py-3 font-body text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 hover:scale-105"
           >
             Explore
-          </a>
+          </Link>
           <a
             href="#stats"
             className="rounded-full border border-primary-foreground/30 px-8 py-3 font-body text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-foreground/10"
