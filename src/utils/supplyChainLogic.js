@@ -23,6 +23,8 @@ const stateLogisticsDatabase = {
  */
 export const calculateDetailedRisk = (state, climateScore, cropScore) => {
 
+    const cScore = climateScore || 0;
+    const crScore = cropScore || 0;
     // The Data Contract verification
     const activeState = stateLogisticsDatabase[state] || stateLogisticsDatabase["Default"];
 
