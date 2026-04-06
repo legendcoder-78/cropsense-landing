@@ -3,13 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { Droplets, Leaf, ThermometerSun, Cloud } from "lucide-react";
-
-interface SoilVegetationData {
-  soilMoisture: number;
-  vegetationIndex: number;
-  landSurfaceTemp: number;
-  cloudCover: number;
-}
+import { generateSoilVegetationData } from "@/services/dashboardGemini";
+import type { SoilVegetationData } from "@/services/dashboardGemini";
 
 function getSoilMoistureLevel(value: number): { label: string; color: string; barColor: string } {
   if (value < 15) return { label: "Very Low", color: "text-red-600", barColor: "bg-red-500" };
@@ -25,31 +20,30 @@ function getVegetationHealth(ndvi: number): { label: string; color: string } {
   return { label: "Dense/Healthy", color: "text-green-700" };
 }
 
-function generateMockData(region: string): SoilVegetationData {
-  const regionData: Record<string, SoilVegetationData> = {
-    "punjab": { soilMoisture: 28, vegetationIndex: 0.55, landSurfaceTemp: 32, cloudCover: 35 },
-    "haryana": { soilMoisture: 25, vegetationIndex: 0.50, landSurfaceTemp: 34, cloudCover: 30 },
-    "maharashtra": { soilMoisture: 32, vegetationIndex: 0.62, landSurfaceTemp: 28, cloudCover: 55 },
-    "karnataka": { soilMoisture: 30, vegetationIndex: 0.58, landSurfaceTemp: 29, cloudCover: 45 },
-    "uttar pradesh": { soilMoisture: 22, vegetationIndex: 0.45, landSurfaceTemp: 36, cloudCover: 25 },
-    "west bengal": { soilMoisture: 38, vegetationIndex: 0.70, landSurfaceTemp: 30, cloudCover: 65 },
-    "andhra pradesh": { soilMoisture: 26, vegetationIndex: 0.48, landSurfaceTemp: 33, cloudCover: 40 },
-    "gujarat": { soilMoisture: 18, vegetationIndex: 0.35, landSurfaceTemp: 37, cloudCover: 20 },
-  };
-
-  return regionData[region] ?? regionData["karnataka"];
-}
-
 export default function SoilVegetationHealth() {
   const { user } = useAuth();
   const [data, setData] = useState<SoilVegetationData | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user?.region) return;
-    const timer = setTimeout(() => {
-      setData(generateMockData(user.region));
-    }, 600);
-    return () => clearTimeout(timer);
+    setLoading(true);
+    generateSoilVegetationData(user.region)
+      .then(setData)
+      .catch(() => {
+        const fallback: Record<string, SoilVegetationData> = {
+          "punjab": { soilMoisture: 28, vegetationIndex: 0.55, landSurfaceTemp: 32, cloudCover: 35 },
+          "haryana": { soilMoisture: 25, vegetationIndex: 0.50, landSurfaceTemp: 34, cloudCover: 30 },
+          "maharashtra": { soilMoisture: 32, vegetationIndex: 0.62, landSurfaceTemp: 28, cloudCover: 55 },
+          "karnataka": { soilMoisture: 30, vegetationIndex: 0.58, landSurfaceTemp: 29, cloudCover: 45 },
+          "uttar pradesh": { soilMoisture: 22, vegetationIndex: 0.45, landSurfaceTemp: 36, cloudCover: 25 },
+          "west bengal": { soilMoisture: 38, vegetationIndex: 0.70, landSurfaceTemp: 30, cloudCover: 65 },
+          "andhra pradesh": { soilMoisture: 26, vegetationIndex: 0.48, landSurfaceTemp: 33, cloudCover: 40 },
+          "gujarat": { soilMoisture: 18, vegetationIndex: 0.35, landSurfaceTemp: 37, cloudCover: 20 },
+        };
+        setData(fallback[user.region!] ?? fallback["karnataka"]);
+      })
+      .finally(() => setLoading(false));
   }, [user?.region]);
 
   if (!user?.region) return null;
@@ -66,7 +60,7 @@ export default function SoilVegetationHealth() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {data ? (
+        {data && !loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-xl bg-gradient-to-br from-sky-50 to-white p-4 border border-sky-100">
               <div className="flex items-center gap-2 mb-3">
