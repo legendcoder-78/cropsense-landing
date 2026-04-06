@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/useAuth";
 import type { ClimateData } from "@/lib/types";
 import { getRecommendations } from "@/lib/climate";
+import { generateRecommendations } from "@/services/dashboardGemini";
 import { AlertTriangle, Droplets, CloudRain, Lightbulb } from "lucide-react";
 
 interface DisruptionPredictorProps {
@@ -36,7 +39,22 @@ function RiskBar({ label, value, icon: Icon }: { label: string; value: number; i
 }
 
 export default function DisruptionPredictor({ data }: DisruptionPredictorProps) {
-  const recommendations = getRecommendations(data);
+  const { user } = useAuth();
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+
+  useEffect(() => {
+    generateRecommendations(user?.region ?? "", {
+      droughtRisk: data.disruptionRisk.droughtRisk,
+      floodRisk: data.disruptionRisk.floodRisk,
+      temperatureRising: data.temperature.riseIndicator,
+      rainfallTrend: data.rainfall.trend,
+      crops: user?.crops,
+    })
+      .then(setRecommendations)
+      .catch(() => {
+        setRecommendations(getRecommendations(data));
+      });
+  }, [data, user]);
 
   return (
     <div className="space-y-6">
