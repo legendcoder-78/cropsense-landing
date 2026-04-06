@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
-import { Heart, Users, Globe } from "lucide-react";
+import { Heart, Users, Globe, Network, LayoutDashboard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CTASection = () => {
+  const navigate = useNavigate();
+
   return (
     <section id="cta" className="relative overflow-hidden py-24 md:py-32 bg-gradient-cta">
       <div className="container relative z-10 mx-auto px-6 text-center">
@@ -38,20 +41,33 @@ const CTASection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="mt-10 flex flex-col lg:flex-row items-center justify-center gap-4"
           >
-            <a
-              href="#"
-              className="rounded-full bg-primary-foreground px-10 py-4 font-body text-sm font-bold text-primary transition-all hover:scale-105 hover:shadow-xl"
+            {/* 1. JOIN THE MOVEMENT */}
+            <button
+              onClick={() => console.log("Trigger Login Modal")}
+              className="w-full sm:w-auto rounded-full bg-primary-foreground px-10 py-4 font-body text-sm font-bold text-primary transition-all hover:scale-105 hover:shadow-xl"
             >
               Join the Movement
-            </a>
-            <a
-              href="#"
-              className="rounded-full border-2 border-primary-foreground/40 px-10 py-4 font-body text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-foreground/10"
+            </button>
+
+            {/* 2. SUPPLY CHAIN LOGIC (THE KILLER FEATURE) */}
+            <button
+              onClick={() => navigate("/nexus")}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full border-2 border-emerald-400 bg-emerald-500/20 px-10 py-4 font-body text-sm font-bold text-emerald-400 transition-all hover:bg-emerald-500/30 hover:scale-105 shadow-[0_0_20px_rgba(52,211,153,0.2)]"
             >
-              Learn More
-            </a>
+              <Network className="h-4 w-4" />
+              Supply Chain Logic
+            </button>
+
+            {/* 3. DASHBOARD */}
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full border-2 border-primary-foreground/40 px-10 py-4 font-body text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-foreground/10 hover:scale-105"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </button>
           </motion.div>
         </ScrollReveal>
       </div>
