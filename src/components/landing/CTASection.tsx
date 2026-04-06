@@ -1,8 +1,29 @@
 import { motion } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
 import { Heart, Users, Globe } from "lucide-react";
+// --- SURGICAL AUTH IMPORT ---
+import { auth, googleProvider, signInWithPopup } from "../../config/auth.ts";
 
 const CTASection = () => {
+  // --- AUTH LOGIC ---
+  const handleLogin = async () => {
+    try {
+      // This triggers the actual popup window
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Welcome:", result.user.displayName);
+
+      // After login, send them to the main app
+      window.location.href = "/";
+      alert(`Welcome to CropSense, ${result.user.displayName}!`);
+    } catch (error) {
+      // We check if it's a real Error object before accessing .message
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+
+      console.error("Auth Error:", errorMessage);
+      alert("Login failed: " + errorMessage);
+    }
+  };
+
   return (
     <section id="cta" className="relative overflow-hidden py-24 md:py-32 bg-gradient-cta">
       <div className="container relative z-10 mx-auto px-6 text-center">
@@ -29,8 +50,7 @@ const CTASection = () => {
 
           <p className="mx-auto mt-6 max-w-2xl font-body text-lg leading-relaxed text-primary-foreground/80">
             Every acre optimized through CropSense is a step toward feeding the
-            world. Join thousands of farmers, researchers, and advocates building
-            a future where no one goes hungry.
+            world. Join thousands of farmers, researchers, and advocates.
           </p>
 
           <motion.div
@@ -40,14 +60,16 @@ const CTASection = () => {
             transition={{ delay: 0.5 }}
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <a
-              href="#"
+            {/* --- SURGICAL BUTTON CHANGE --- */}
+            <button
+              onClick={handleLogin}
               className="rounded-full bg-primary-foreground px-10 py-4 font-body text-sm font-bold text-primary transition-all hover:scale-105 hover:shadow-xl"
             >
               Join the Movement
-            </a>
+            </button>
+
             <a
-              href="#"
+              href="#features"
               className="rounded-full border-2 border-primary-foreground/40 px-10 py-4 font-body text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-foreground/10"
             >
               Learn More
