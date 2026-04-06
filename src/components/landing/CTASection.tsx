@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
 import { Heart, Users, Globe } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const CTASection = () => {
+  const { openModal } = useAuth();
+
   return (
     <section id="cta" className="relative overflow-hidden py-24 md:py-32 bg-gradient-cta">
       <div className="container relative z-10 mx-auto px-6 text-center">
@@ -40,14 +43,14 @@ const CTASection = () => {
             transition={{ delay: 0.5 }}
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <a
-              href="#"
+            <button
+              onClick={() => openModal("signup")}
               className="rounded-full bg-primary-foreground px-10 py-4 font-body text-sm font-bold text-primary transition-all hover:scale-105 hover:shadow-xl"
             >
               Join the Movement
-            </a>
+            </button>
             <a
-              href="#"
+              href="#stats"
               className="rounded-full border-2 border-primary-foreground/40 px-10 py-4 font-body text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-foreground/10"
             >
               Learn More
