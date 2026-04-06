@@ -1,0 +1,9 @@
+{
+  "provider_sites": [
+    { "name": "IndiaMart", "url": "https://www.indiamart.com/proddetail/agriculture.html" },
+    { "name": "TradeIndia", "url": "https://www.tradeindia.com/agriculture/" },
+    { "name": "AgroStar", "url": "https://www.agrostar.in/" },
+    { "name": "BigHaat", "url": "https://www.bighaat.com/" },
+    { "name": "Ugaoo", "url": "https://www.ugaoo.com/" }
+  ]
+}

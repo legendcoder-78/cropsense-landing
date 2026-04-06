@@ -1,0 +1,32 @@
+{
+  "states": {
+    "Andhra Pradesh": ["Rice", "Maize", "Cotton", "Groundnut", "Sugarcane", "Mangoes", "Chilies"],
+    "Arunachal Pradesh": ["Rice", "Maize", "Millet", "Wheat", "Mustard", "Ginger"],
+    "Assam": ["Tea", "Rice", "Jute", "Mustard", "Sugarcane", "Potato"],
+    "Bihar": ["Rice", "Wheat", "Maize", "Sugarcane", "Makhana", "Jute", "Lentils"],
+    "Chhattisgarh": ["Rice", "Maize", "Kodo-Kutki", "Groundnut", "Soybean"],
+    "Goa": ["Rice", "Cashew", "Coconut", "Arecanut", "Mango"],
+    "Gujarat": ["Cotton", "Groundnut", "Tobacco", "Cumin", "Sesame", "Wheat", "Bajra"],
+    "Haryana": ["Wheat", "Rice", "Sugarcane", "Cotton", "Mustard", "Bajra", "Gram"],
+    "Himachal Pradesh": ["Apples", "Wheat", "Maize", "Barley", "Potatoes", "Peaches"],
+    "Jharkhand": ["Rice", "Maize", "Wheat", "Pulses", "Oilseeds"],
+    "Karnataka": ["Coffee", "Ragi", "Jowar", "Maize", "Cotton", "Sugarcane", "Sunflowers"],
+    "Kerala": ["Rubber", "Coconut", "Pepper", "Cardamom", "Tea", "Coffee", "Rice"],
+    "Madhya Pradesh": ["Soybean", "Wheat", "Gram", "Maize", "Mustard", "Garlic", "Onion"],
+    "Maharashtra": ["Sugarcane", "Cotton", "Soybean", "Onion", "Grapes", "Pomegranate", "Tur"],
+    "Manipur": ["Rice", "Maize", "Pulses", "Oilseeds", "Pineapple"],
+    "Meghalaya": ["Rice", "Maize", "Potatoes", "Ginger", "Turmeric", "Arecanut"],
+    "Mizoram": ["Rice", "Maize", "Mustard", "Ginger", "Turmeric"],
+    "Nagaland": ["Rice", "Maize", "Millet", "Pulses", "Potatoes"],
+    "Odisha": ["Rice", "Turmeric", "Jute", "Sugarcane", "Mung", "Sesame"],
+    "Punjab": ["Wheat", "Rice", "Cotton", "Sugarcane", "Mustard", "Maize"],
+    "Rajasthan": ["Mustard", "Bajra", "Wheat", "Gram", "Guar", "Cumin", "Isabgol"],
+    "Sikkim": ["Cardamom", "Ginger", "Oranges", "Apples", "Tea", "Rice"],
+    "Tamil Nadu": ["Rice", "Groundnut", "Cotton", "Sugarcane", "Tea", "Coffee", "Bananas"],
+    "Telangana": ["Cotton", "Rice", "Maize", "Red Gram", "Mangoes", "Turmeric"],
+    "Tripura": ["Rice", "Rubber", "Tea", "Jute", "Jackfruit"],
+    "Uttar Pradesh": ["Wheat", "Sugarcane", "Rice", "Potato", "Mangoes", "Mustard", "Lentils"],
+    "Uttarakhand": ["Wheat", "Rice", "Mandua", "Sugarcane", "Apples", "Soybean"],
+    "West Bengal": ["Rice", "Jute", "Potato", "Tea", "Wheat", "Pineapple"]
+  }
+}
