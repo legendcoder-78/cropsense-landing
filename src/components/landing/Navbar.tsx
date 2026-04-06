@@ -7,7 +7,8 @@ const navLinks = [
   { label: "About", href: "/#about" },
   { label: "Gallery", href: "/#gallery" },
   { label: "Impact", href: "/#stats" },
-  { label: "Join Us", href: "/#cta" },
+  { label: "Crop Risk AI", href: "/Crop%20Sense.html" },
+  { label: "Supply Chain Risk", href: "/supply-chain" },
 ];
 
 const Navbar = ({ alwaysOpaque = false }: { alwaysOpaque?: boolean }) => {
