@@ -6,6 +6,7 @@ import StatsSection from "@/components/landing/StatsSection";
 import QuoteSection from "@/components/landing/QuoteSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
+import LoggedOutCTA from "@/components/ui/LoggedOutCTA";
 
 const Index = () => {
   return (
@@ -17,6 +18,7 @@ const Index = () => {
       <StatsSection />
       <QuoteSection />
       <CTASection />
+      <LoggedOutCTA />
       <Footer />
     </div>
   );

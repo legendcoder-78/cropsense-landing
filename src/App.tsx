@@ -8,6 +8,7 @@ import Index from "./pages/Index.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import Explore from "./pages/Explore.tsx";
 import SupplyChain from "./pages/SupplyChain.tsx";
+import CropRisk from "./pages/CropRisk.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/supply-chain" element={<SupplyChain />} />
+            <Route path="/crop-risk" element={<CropRisk />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

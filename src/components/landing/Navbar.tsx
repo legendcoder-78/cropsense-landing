@@ -2,7 +2,7 @@ import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { Menu, X, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import logoImg from "@/assets/cropsense-logo.png";
+import CropSenseLogo from "@/components/landing/CropSenseLogo";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/auth/AuthModal";
 
@@ -10,7 +10,7 @@ const navLinks = [
   { label: "About", href: "/#about" },
   { label: "Gallery", href: "/#gallery" },
   { label: "Impact", href: "/#stats" },
-  { label: "Crop Risk AI", href: "/Crop%20Sense.html" },
+  { label: "Crop Risk AI", href: "/crop-risk" },
   { label: "Supply Chain Risk", href: "/supply-chain" },
 ];
 
@@ -30,11 +30,7 @@ const Navbar = ({ alwaysOpaque = false }: { alwaysOpaque?: boolean }) => {
       >
         <div className="container mx-auto flex items-center justify-between py-3 px-6">
           <a href="#" className="flex items-center gap-2 group">
-            <img
-              src={logoImg}
-              alt="CropSense Logo"
-              className="h-10 w-auto mix-blend-multiply drop-shadow-sm"
-            />
+            <CropSenseLogo size="lg" className="drop-shadow-sm" />
           </a>
 
           <div className="hidden md:flex items-center gap-8">

@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import LoggedOutCTA from "@/components/ui/LoggedOutCTA";
 import { locationData } from "@/data/exploreData";
 import { calculateDetailedRisk } from "@/utils/sclllmtest";
 
@@ -189,6 +190,7 @@ const SupplyChain = () => {
         )}
       </main>
 
+      <LoggedOutCTA />
       <Footer />
     </div>
   );
