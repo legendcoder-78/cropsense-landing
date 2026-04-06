@@ -10,6 +10,7 @@ import Explore from "./pages/Explore.tsx";
 import SupplyChain from "./pages/SupplyChain.tsx";
 import CropRisk from "./pages/CropRisk.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { SiteChatbot } from "./components/ui/SiteChatbot.tsx";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SiteChatbot />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
