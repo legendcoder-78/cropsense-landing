@@ -1,5 +1,4 @@
-const NASA_POWER_BASE = "https://power.larc.nasa.gov/api/temporal/daily/";
-const CLIMATOLOGY_BASE = "https://power.larc.nasa.gov/api/temporal/climatology/";
+const NASA_POWER_BASE = "https://power.larc.nasa.gov/api/temporal/daily/point";
 
 export interface NasaPowerParams {
   latitude: number;
@@ -21,19 +20,19 @@ const DEFAULT_PARAMETERS = [
 ];
 
 async function fetchNasaPower(
-  baseUrl: string,
   params: NasaPowerParams
 ): Promise<Record<string, unknown>> {
-  const url = new URL(baseUrl);
-  url.searchParams.set("latitude", params.latitude.toString());
-  url.searchParams.set("longitude", params.longitude.toString());
-  url.searchParams.set("parameters", params.parameters?.join(",") ?? DEFAULT_PARAMETERS.join(","));
-  url.searchParams.set("format", "JSON");
+  const today = new Date();
+  const lastYear = new Date(today);
+  lastYear.setFullYear(today.getFullYear() - 1);
+  
+  const startDate = params.startDate ?? lastYear.toISOString().replace(/-/g, "").slice(0, 8);
+  const endDate = params.endDate ?? today.toISOString().replace(/-/g, "").slice(0, 8);
+  const parameters = params.parameters?.join(",") ?? DEFAULT_PARAMETERS.join(",");
 
-  if (params.startDate) url.searchParams.set("start", params.startDate);
-  if (params.endDate) url.searchParams.set("end", params.endDate);
+  const url = `https://power.larc.nasa.gov/api/temporal/daily/point?latitude=${params.latitude}&longitude=${params.longitude}&community=RE&parameters=${parameters}&start=${startDate}&end=${endDate}&format=JSON`;
 
-  const response = await fetch(url.toString());
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`NASA POWER API error: ${response.status} ${response.statusText}`);
   }
@@ -43,12 +42,12 @@ async function fetchNasaPower(
 export async function fetchNasaPowerDaily(params: NasaPowerParams) {
   const today = new Date();
   const yearAgo = new Date(today);
-  yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+  yearAgo.setFullYear(today.getFullYear() - 1);
 
-  const startDate = params.startDate ?? yearAgo.toISOString().split("T")[0];
-  const endDate = params.endDate ?? today.toISOString().split("T")[0];
+  const startDate = params.startDate ?? yearAgo.toISOString().split("T")[0].replace(/-/g, "");
+  const endDate = params.endDate ?? today.toISOString().split("T")[0].replace(/-/g, "");
 
-  return fetchNasaPower(`${NASA_POWER_BASE}timeseries/`, {
+  return fetchNasaPower({
     ...params,
     startDate,
     endDate,
@@ -56,9 +55,7 @@ export async function fetchNasaPowerDaily(params: NasaPowerParams) {
 }
 
 export async function fetchNasaPowerClimatology(params: NasaPowerParams) {
-  return fetchNasaPower(`${CLIMATOLOGY_BASE}daily/`, {
-    ...params,
-  });
+  return fetchNasaPower(params);
 }
 
 export interface NasaPowerDailyResult {
@@ -187,27 +184,49 @@ export interface NasaPowerClimatologyResult {
 }
 
 export function parseNasaPowerClimatologyResponse(data: Record<string, unknown>): NasaPowerClimatologyResult {
-  const parameters = data.parameters as Record<string, number[]> | undefined;
-  if (!parameters) {
-    throw new Error("Invalid NASA POWER climatology response");
+  const properties = data.properties as Record<string, unknown> | undefined;
+  if (!properties) {
+    throw new Error("Invalid NASA POWER response format");
   }
 
+  const parameterData = properties.parameter as Record<string, Record<string, number>> | undefined;
+  if (!parameterData) {
+    throw new Error("No parameter data in NASA POWER response");
+  }
+
+  const prectot = parameterData.PRECTOTCORR ?? {};
+  const t2m = parameterData.T2M ?? {};
+
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const prectot = parameters.PRECTOTCORR ?? [];
-  const t2m = parameters.T2M ?? [];
 
-  const monthlyRainfall = months.map((month, i) => ({
-    month,
-    mm: parseFloat(((prectot[i] ?? 0) * 30.44).toFixed(2)),
-  }));
+  const monthlyRainfall = months.map((month) => {
+    let total = 0;
+    let count = 0;
+    for (const [date, value] of Object.entries(prectot)) {
+      const d = new Date(date.slice(0, 4) + "-" + date.slice(4, 6) + "-" + date.slice(6, 8));
+      if (d.getMonth() === months.indexOf(month)) {
+        total += value;
+        count++;
+      }
+    }
+    return { month, mm: parseFloat(((count > 0 ? total / count : 0) * 30.44).toFixed(2)) };
+  });
 
-  const monthlyTemp = months.map((month, i) => ({
-    month,
-    celsius: parseFloat((t2m[i] ?? 0).toFixed(2)),
-  }));
+  const monthlyTemp = months.map((month) => {
+    let total = 0;
+    let count = 0;
+    for (const [date, value] of Object.entries(t2m)) {
+      const d = new Date(date.slice(0, 4) + "-" + date.slice(4, 6) + "-" + date.slice(6, 8));
+      if (d.getMonth() === months.indexOf(month)) {
+        total += value;
+        count++;
+      }
+    }
+    return { month, celsius: parseFloat((count > 0 ? total / count : 0).toFixed(2)) };
+  });
 
-  const annualRainfall = monthlyRainfall.reduce((sum, m) => sum + m.mm, 0);
-  const annualAvgTemp = monthlyTemp.reduce((sum, m) => sum + m.celsius, 0) / 12;
+  const annualRainfall = monthlyRainfall.reduce((s, m) => s + m.mm, 0);
+  const annualAvgTemp = monthlyTemp.reduce((s, m) => s + m.celsius, 0) / 12;
 
   return {
     monthlyRainfall,

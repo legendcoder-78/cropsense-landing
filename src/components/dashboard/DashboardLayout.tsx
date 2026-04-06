@@ -11,15 +11,17 @@ import {
   LogOut,
   Menu,
   X,
+  Sprout,
 } from "lucide-react";
 
-type Tab = "overview" | "profile" | "climate" | "predictions";
+type Tab = "overview" | "profile" | "climate" | "predictions" | "crops";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "profile", label: "Profile", icon: User },
   { id: "climate", label: "Climate", icon: CloudRain },
   { id: "predictions", label: "Predictions", icon: AlertTriangle },
+  { id: "crops", label: "My Crops", icon: Sprout },
 ];
 
 interface DashboardLayoutProps {

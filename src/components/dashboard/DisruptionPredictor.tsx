@@ -21,9 +21,6 @@ function RiskLevelBadge({ level }: { level: string }) {
 }
 
 function RiskBar({ label, value, icon: Icon }: { label: string; value: number; icon: typeof Droplets }) {
-  const color =
-    value <= 3.5 ? "bg-primary" : value <= 6.5 ? "bg-harvest" : "bg-destructive";
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
