@@ -8,11 +8,13 @@ import ProfileForm from "@/components/dashboard/ProfileForm";
 import RainfallChart from "@/components/dashboard/RainfallChart";
 import WeatherTrends from "@/components/dashboard/WeatherTrends";
 import DisruptionPredictor from "@/components/dashboard/DisruptionPredictor";
+import CropRiskAnalysis from "@/components/dashboard/CropRiskAnalysis";
+import HistoricalComparison from "@/components/dashboard/HistoricalComparison";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import type { Region } from "@/lib/types";
 
-type Tab = "overview" | "profile" | "climate" | "predictions";
+type Tab = "overview" | "profile" | "climate" | "predictions" | "crops";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -36,6 +38,10 @@ function TabContent({ tab, region }: { tab: Tab; region: Region }) {
     return <LoadingState />;
   }
 
+  return renderTab(tab, data);
+}
+
+function renderTab(tab: Tab, data: NonNullable<ReturnType<typeof useClimate>["data"]>) {
   switch (tab) {
     case "overview":
       return <ClimateOverview data={data} />;
@@ -44,12 +50,15 @@ function TabContent({ tab, region }: { tab: Tab; region: Region }) {
     case "climate":
       return (
         <div className="space-y-6">
+          <HistoricalComparison />
           <RainfallChart data={data} />
           <WeatherTrends data={data} />
         </div>
       );
     case "predictions":
       return <DisruptionPredictor data={data} />;
+    case "crops":
+      return <CropRiskAnalysis />;
     default:
       return <ClimateOverview data={data} />;
   }

@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ClimateData } from "@/lib/types";
 import { CloudRain, Thermometer, TrendingUp, AlertTriangle } from "lucide-react";
+import WeatherForecast from "./WeatherForecast";
+import SoilVegetationHealth from "./SoilVegetationHealth";
 
 interface ClimateOverviewProps {
   data: ClimateData;
@@ -71,6 +73,36 @@ export default function ClimateOverview({ data }: ClimateOverviewProps) {
           <span className="font-medium text-foreground capitalize">{data.region}</span>
         </p>
       </div>
+
+      {data.disruptionRisk.droughtRisk >= 7 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-red-800">Drought Alert</p>
+            <p className="text-xs text-red-600">Elevated drought risk ({data.disruptionRisk.droughtRisk.toFixed(1)}/10) detected for {data.region}. Consider drought-resistant crop varieties.</p>
+          </div>
+        </div>
+      )}
+
+      {data.disruptionRisk.floodRisk >= 7 && (
+        <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
+          <AlertTriangle className="h-5 w-5 text-sky-600 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-sky-800">Flood Alert</p>
+            <p className="text-xs text-sky-600">Elevated flood risk ({data.disruptionRisk.floodRisk.toFixed(1)}/10) detected for {data.region}. Ensure drainage systems are clear.</p>
+          </div>
+        </div>
+      )}
+
+      {data.temperature.riseIndicator && data.temperature.annualAvg > 30 && (
+        <div className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
+          <AlertTriangle className="h-5 w-5 text-orange-600 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-orange-800">Heat Advisory</p>
+            <p className="text-xs text-orange-600">Average temperature of {data.temperature.annualAvg.toFixed(1)}°C with rising trend. Heat stress risk to crops is elevated.</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 flex flex-col items-center justify-center py-8">
@@ -161,6 +193,9 @@ export default function ClimateOverview({ data }: ClimateOverviewProps) {
           </Card>
         </div>
       </div>
+
+      <WeatherForecast />
+      <SoilVegetationHealth />
     </div>
   );
 }
