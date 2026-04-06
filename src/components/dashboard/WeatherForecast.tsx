@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { Thermometer, Droplets, Wind, Sun, CloudRain } from "lucide-react";
+import { generateWeatherForecast } from "@/services/dashboardGemini";
+import type { ForecastDay } from "@/services/dashboardGemini";
 
 interface DailyForecast {
   date: string;
@@ -14,6 +16,17 @@ interface DailyForecast {
 }
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const baseTemps: Record<string, { max: number; min: number }> = {
+  "punjab": { max: 35, min: 22 },
+  "haryana": { max: 36, min: 23 },
+  "maharashtra": { max: 33, min: 24 },
+  "karnataka": { max: 32, min: 21 },
+  "uttar pradesh": { max: 38, min: 25 },
+  "west bengal": { max: 34, min: 26 },
+  "andhra pradesh": { max: 36, min: 25 },
+  "gujarat": { max: 37, min: 24 },
+};
 
 function getUvLevel(uv: number): { label: string; color: string } {
   if (uv <= 2) return { label: "Low", color: "text-emerald-600" };
@@ -29,47 +42,52 @@ function getPrecipIcon(precip: number) {
   return Sun;
 }
 
-function generateMockForecast(region: string): DailyForecast[] {
-  const baseTemps: Record<string, { max: number; min: number }> = {
-    "punjab": { max: 35, min: 22 },
-    "haryana": { max: 36, min: 23 },
-    "maharashtra": { max: 33, min: 24 },
-    "karnataka": { max: 32, min: 21 },
-    "uttar pradesh": { max: 38, min: 25 },
-    "west bengal": { max: 34, min: 26 },
-    "andhra pradesh": { max: 36, min: 25 },
-    "gujarat": { max: 37, min: 24 },
-  };
-
-  const base = baseTemps[region] ?? { max: 34, min: 23 };
+function adaptForecastDay(day: ForecastDay, index: number): DailyForecast {
   const today = new Date();
-
-  return Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    const variation = Math.sin(i * 0.8) * 3;
-    return {
-      date: d.toISOString().split("T")[0],
-      dayName: dayNames[d.getDay()],
-      tempMax: base.max + variation + Math.round(Math.random() * 2),
-      tempMin: base.min + variation * 0.5 + Math.round(Math.random()),
-      precipitation: Math.round(Math.random() * 8 * (i > 3 ? 2 : 0.5) * 10) / 10,
-      uvIndex: Math.round((7 + Math.random() * 3) * 10) / 10,
-      windSpeed: Math.round(8 + Math.random() * 15),
-    };
-  });
+  const d = new Date(today);
+  d.setDate(d.getDate() + index);
+  return {
+    date: day.date || d.toISOString().split("T")[0],
+    dayName: day.dayName || dayNames[d.getDay()],
+    tempMax: day.tempMax,
+    tempMin: day.tempMin,
+    precipitation: day.precipitation,
+    uvIndex: day.uvIndex,
+    windSpeed: day.windSpeed,
+  };
 }
 
 export default function WeatherForecast() {
   const { user } = useAuth();
   const [forecast, setForecast] = useState<DailyForecast[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user?.region) return;
-    const timer = setTimeout(() => {
-      setForecast(generateMockForecast(user.region));
-    }, 800);
-    return () => clearTimeout(timer);
+    setLoading(true);
+    generateWeatherForecast(user.region)
+      .then((data) => {
+        setForecast(data.map((day, i) => adaptForecastDay(day, i)));
+      })
+      .catch(() => {
+        const base = baseTemps[user.region!] ?? { max: 34, min: 23 };
+        const today = new Date();
+        setForecast(Array.from({ length: 7 }).map((_, i) => {
+          const d = new Date(today);
+          d.setDate(d.getDate() + i);
+          const variation = Math.sin(i * 0.8) * 3;
+          return {
+            date: d.toISOString().split("T")[0],
+            dayName: dayNames[d.getDay()],
+            tempMax: base.max + variation + Math.round(Math.random() * 2),
+            tempMin: base.min + variation * 0.5 + Math.round(Math.random()),
+            precipitation: Math.round(Math.random() * 8 * (i > 3 ? 2 : 0.5) * 10) / 10,
+            uvIndex: Math.round((7 + Math.random() * 3) * 10) / 10,
+            windSpeed: Math.round(8 + Math.random() * 15),
+          };
+        }));
+      })
+      .finally(() => setLoading(false));
   }, [user?.region]);
 
   if (!user?.region) return null;
@@ -86,7 +104,7 @@ export default function WeatherForecast() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {forecast.length === 0 ? (
+        {(forecast.length === 0 || loading) ? (
           <div className="grid grid-cols-7 gap-2">
             {Array.from({ length: 7 }).map((_, i) => (
               <div key={i} className="flex flex-col items-center rounded-xl p-3 bg-muted/30 animate-pulse">

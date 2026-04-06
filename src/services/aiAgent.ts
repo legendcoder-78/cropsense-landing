@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // API Keys
 const NEWS_API_KEY = "e802b7548e6343a581c85acef1ae3d8b";
-const GEMINI_API_KEY = "AIzaSyC1l27r2iARqpEbkfz_gPoiGqTNM96WAQ0";
+const GEMINI_API_KEY = "AIzaSyCsC64OY8soK0FdoHZ4NSwgiFEVNatafZU";
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 

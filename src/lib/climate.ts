@@ -1,5 +1,119 @@
 import type { Region, ClimateData } from "./types";
 
+export const CROP_PARAMS: Record<string, {
+  idealTemp: [number, number];
+  idealRain: [number, number];
+  droughtTolerance: number;
+  floodTolerance: number;
+}> = {
+  "Wheat": { idealTemp: [15, 25], idealRain: [50, 100], droughtTolerance: 0.3, floodTolerance: 0.2 },
+  "Rice": { idealTemp: [20, 35], idealRain: [100, 250], droughtTolerance: 0.1, floodTolerance: 0.8 },
+  "Cotton": { idealTemp: [25, 35], idealRain: [50, 120], droughtTolerance: 0.6, floodTolerance: 0.2 },
+  "Sugarcane": { idealTemp: [21, 27], idealRain: [75, 150], droughtTolerance: 0.2, floodTolerance: 0.4 },
+  "Maize": { idealTemp: [21, 27], idealRain: [50, 100], droughtTolerance: 0.4, floodTolerance: 0.3 },
+  "Soybean": { idealTemp: [20, 30], idealRain: [60, 120], droughtTolerance: 0.3, floodTolerance: 0.3 },
+  "Groundnut": { idealTemp: [20, 30], idealRain: [50, 100], droughtTolerance: 0.5, floodTolerance: 0.2 },
+  "Mustard": { idealTemp: [10, 25], idealRain: [30, 80], droughtTolerance: 0.5, floodTolerance: 0.2 },
+  "Potato": { idealTemp: [15, 25], idealRain: [50, 100], droughtTolerance: 0.2, floodTolerance: 0.3 },
+  "Jute": { idealTemp: [24, 38], idealRain: [150, 250], droughtTolerance: 0.1, floodTolerance: 0.6 },
+  "Tea": { idealTemp: [20, 30], idealRain: [150, 300], droughtTolerance: 0.2, floodTolerance: 0.5 },
+  "Coffee": { idealTemp: [15, 28], idealRain: [150, 250], droughtTolerance: 0.2, floodTolerance: 0.3 },
+  "Millet": { idealTemp: [20, 35], idealRain: [40, 80], droughtTolerance: 0.8, floodTolerance: 0.2 },
+  "Pulses": { idealTemp: [20, 30], idealRain: [40, 100], droughtTolerance: 0.6, floodTolerance: 0.3 },
+  "Turmeric": { idealTemp: [20, 35], idealRain: [150, 250], droughtTolerance: 0.3, floodTolerance: 0.5 },
+};
+
+export const REGION_CROPS: Record<Region, string[]> = {
+  "punjab": ["Wheat", "Rice", "Cotton", "Maize", "Sugarcane"],
+  "haryana": ["Wheat", "Rice", "Cotton", "Sugarcane", "Mustard"],
+  "maharashtra": ["Cotton", "Sugarcane", "Soybean", "Groundnut", "Turmeric"],
+  "karnataka": ["Coffee", "Sugarcane", "Maize", "Groundnut", "Cotton"],
+  "uttar pradesh": ["Wheat", "Rice", "Sugarcane", "Potato", "Pulses"],
+  "west bengal": ["Rice", "Jute", "Tea", "Potato", "Pulses"],
+  "andhra pradesh": ["Rice", "Cotton", "Groundnut", "Turmeric", "Pulses"],
+  "gujarat": ["Cotton", "Groundnut", "Wheat", "Mustard", "Pulses"],
+};
+
+export function calculateCropRisk(crop: string, climateData: ClimateData): {
+  risk: "Low" | "Medium" | "High";
+  score: number;
+  explanation: string;
+} {
+  const params = CROP_PARAMS[crop];
+  if (!params) {
+    return { risk: "Medium", score: 50, explanation: "Analysis pending. Check back later." };
+  }
+
+  const avgTemp = climateData.temperature.annualAvg;
+  const monthlyRain = climateData.rainfall.annual / 12;
+
+  let tempScore = 100;
+  if (avgTemp < params.idealTemp[0]) {
+    tempScore = Math.max(0, 100 - (params.idealTemp[0] - avgTemp) * 10);
+  } else if (avgTemp > params.idealTemp[1]) {
+    tempScore = Math.max(0, 100 - (avgTemp - params.idealTemp[1]) * 10);
+  }
+
+  let rainScore = 100;
+  if (monthlyRain < params.idealRain[0]) {
+    rainScore = Math.max(0, 100 - (params.idealRain[0] - monthlyRain) * 0.8);
+  } else if (monthlyRain > params.idealRain[1]) {
+    rainScore = Math.max(0, 100 - (monthlyRain - params.idealRain[1]) * 0.5);
+  }
+
+  const droughtImpact = (1 - params.droughtTolerance) * climateData.disruptionRisk.droughtRisk * 10;
+  const floodImpact = (1 - params.floodTolerance) * climateData.disruptionRisk.floodRisk * 10;
+
+  const combinedScore = (tempScore * 0.35 + rainScore * 0.35) - droughtImpact * 0.15 - floodImpact * 0.15;
+  const normalizedScore = Math.max(0, Math.min(100, combinedScore));
+
+  let risk: "Low" | "Medium" | "High";
+  if (normalizedScore >= 65) risk = "Low";
+  else if (normalizedScore >= 40) risk = "Medium";
+  else risk = "High";
+
+  const explanation = generateCropExplanation(crop, params, climateData, tempScore, rainScore, droughtImpact, floodImpact);
+
+  return { risk, score: Math.round(normalizedScore), explanation };
+}
+
+function generateCropExplanation(
+  crop: string,
+  params: { idealTemp: [number, number]; idealRain: [number, number]; droughtTolerance: number; floodTolerance: number },
+  climateData: ClimateData,
+  tempScore: number,
+  rainScore: number,
+  droughtImpact: number,
+  floodImpact: number
+): string {
+  const parts: string[] = [];
+
+  if (tempScore >= 80) {
+    parts.push(`Temperature conditions are favorable for ${crop} growth.`);
+  } else if (tempScore >= 50) {
+    parts.push(`Temperatures are slightly outside the ideal range (${params.idealTemp[0]}-${params.idealTemp[1]}°C) for ${crop}.`);
+  } else {
+    parts.push(`Temperature stress detected - current averages deviate significantly from ${crop}'s optimal range (${params.idealTemp[0]}-${params.idealTemp[1]}°C).`);
+  }
+
+  if (rainScore >= 80) {
+    parts.push("Rainfall patterns are adequate for this crop.");
+  } else if (rainScore >= 50) {
+    parts.push(`Rainfall levels may require supplemental irrigation to meet ${crop}'s needs (${params.idealRain[0]}-${params.idealRain[1]}mm monthly).`);
+  } else {
+    parts.push(`Significant rainfall deficit detected. ${crop} requires ${params.idealRain[0]}-${params.idealRain[1]}mm monthly but current patterns fall short.`);
+  }
+
+  if (droughtImpact > 3) {
+    parts.push(`Drought risk is elevated. ${crop} has ${params.droughtTolerance > 0.5 ? "moderate" : "low"} drought tolerance.`);
+  }
+  if (floodImpact > 3) {
+    parts.push(`Flood risk is notable. ${crop} has ${params.floodTolerance > 0.5 ? "moderate" : "limited"} flood tolerance.`);
+  }
+
+  return parts.join(" ");
+}
+
 const REGION_BASE: Record<Region, {
   baseRainfall: number;
   baseTemp: number;

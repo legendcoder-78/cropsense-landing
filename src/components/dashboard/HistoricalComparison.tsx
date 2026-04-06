@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,106 +13,33 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-
-interface MonthlyComparison {
-  month: string;
-  thisYear: number;
-  lastYear: number;
-  diff: number;
-  diffPercent: number;
-}
-
-interface ComparisonResult {
-  rainfall: MonthlyComparison[];
-  temperature: MonthlyComparison[];
-  annualRainfallDiff: number;
-  annualTempDiff: number;
-}
-
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-function generateMockComparison(region: string): ComparisonResult {
-  const regionData: Record<string, { rainfallThis: number[]; rainfallLast: number[]; tempThis: number[]; tempLast: number[] }> = {
-    "punjab": {
-      rainfallThis: [12, 18, 22, 28, 55, 140, 230, 210, 165, 85, 35, 12],
-      rainfallLast: [15, 20, 25, 30, 60, 150, 250, 230, 180, 100, 40, 15],
-      tempThis: [14, 17, 23, 29, 34, 36, 31, 29, 30, 26, 20, 15],
-      tempLast: [13, 16, 22, 28, 33, 35, 30, 28, 29, 25, 19, 14],
-    },
-    "haryana": {
-      rainfallThis: [10, 15, 20, 25, 50, 130, 220, 200, 155, 80, 30, 10],
-      rainfallLast: [12, 18, 22, 28, 55, 140, 230, 210, 165, 85, 35, 12],
-      tempThis: [15, 18, 24, 30, 35, 37, 32, 30, 31, 27, 21, 16],
-      tempLast: [14, 17, 23, 29, 34, 36, 31, 29, 30, 26, 20, 15],
-    },
-    "maharashtra": {
-      rainfallThis: [5, 8, 15, 25, 55, 180, 350, 320, 250, 120, 45, 8],
-      rainfallLast: [8, 10, 18, 30, 60, 200, 380, 350, 280, 140, 50, 10],
-      tempThis: [24, 26, 29, 32, 34, 30, 26, 25, 26, 28, 26, 24],
-      tempLast: [23, 25, 28, 31, 33, 29, 25, 24, 25, 27, 25, 23],
-    },
-    "karnataka": {
-      rainfallThis: [8, 12, 20, 40, 80, 120, 100, 110, 130, 140, 70, 15],
-      rainfallLast: [10, 15, 22, 45, 85, 130, 110, 120, 140, 150, 75, 18],
-      tempThis: [24, 26, 29, 31, 30, 26, 24, 24, 25, 25, 24, 23],
-      tempLast: [23, 25, 28, 30, 29, 25, 23, 23, 24, 24, 23, 22],
-    },
-    "uttar pradesh": {
-      rainfallThis: [8, 12, 15, 20, 35, 100, 250, 260, 180, 60, 15, 5],
-      rainfallLast: [10, 15, 18, 22, 40, 110, 270, 280, 200, 70, 18, 6],
-      tempThis: [16, 19, 26, 33, 38, 37, 31, 29, 30, 28, 22, 17],
-      tempLast: [15, 18, 25, 32, 37, 36, 30, 28, 29, 27, 21, 16],
-    },
-    "west bengal": {
-      rainfallThis: [10, 18, 30, 55, 120, 250, 320, 280, 220, 130, 30, 8],
-      rainfallLast: [12, 20, 35, 60, 130, 270, 350, 300, 240, 140, 35, 10],
-      tempThis: [20, 23, 28, 31, 33, 32, 30, 30, 30, 29, 25, 20],
-      tempLast: [19, 22, 27, 30, 32, 31, 29, 29, 29, 28, 24, 19],
-    },
-    "andhra pradesh": {
-      rainfallThis: [8, 12, 18, 30, 60, 80, 100, 120, 160, 180, 80, 12],
-      rainfallLast: [10, 15, 20, 35, 65, 90, 110, 130, 170, 190, 85, 15],
-      tempThis: [26, 29, 33, 36, 38, 35, 30, 29, 30, 30, 27, 25],
-      tempLast: [25, 28, 32, 35, 37, 34, 29, 28, 29, 29, 26, 24],
-    },
-    "gujarat": {
-      rainfallThis: [3, 5, 8, 15, 30, 100, 220, 200, 140, 50, 12, 3],
-      rainfallLast: [5, 8, 10, 18, 35, 110, 240, 220, 160, 60, 15, 5],
-      tempThis: [20, 23, 28, 33, 37, 34, 29, 28, 29, 30, 25, 21],
-      tempLast: [19, 22, 27, 32, 36, 33, 28, 27, 28, 29, 24, 20],
-    },
-  };
-
-  const data = regionData[region] ?? regionData["karnataka"];
-
-  const rainfall = months.map((month, i) => ({
-    month,
-    thisYear: data.rainfallThis[i],
-    lastYear: data.rainfallLast[i],
-    diff: parseFloat((data.rainfallThis[i] - data.rainfallLast[i]).toFixed(2)),
-    diffPercent: parseFloat(((data.rainfallThis[i] - data.rainfallLast[i]) / Math.max(1, data.rainfallLast[i]) * 100).toFixed(1)),
-  }));
-
-  const temperature = months.map((month, i) => ({
-    month,
-    thisYear: data.tempThis[i],
-    lastYear: data.tempLast[i],
-    diff: parseFloat((data.tempThis[i] - data.tempLast[i]).toFixed(2)),
-    diffPercent: parseFloat(((data.tempThis[i] - data.tempLast[i]) / Math.max(1, data.tempLast[i]) * 100).toFixed(1)),
-  }));
-
-  const annualRainfallDiff = rainfall.reduce((s, m) => s + m.diff, 0);
-  const annualTempDiff = temperature.reduce((s, m) => s + m.diff, 0);
-
-  return { rainfall, temperature, annualRainfallDiff, annualTempDiff };
-}
+import { generateHistoricalComparison } from "@/services/dashboardGemini";
+import type { ComparisonResult } from "@/services/dashboardGemini";
 
 export default function HistoricalComparison() {
   const { user } = useAuth();
+  const [data, setData] = useState<ComparisonResult | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const data = useMemo(() => {
-    if (!user?.region) return null;
-    return generateMockComparison(user.region);
+  useEffect(() => {
+    if (!user?.region) return;
+    setLoading(true);
+    generateHistoricalComparison(user.region)
+      .then(setData)
+      .catch(() => {
+        const fallback: Record<string, ComparisonResult> = {
+          "punjab": buildComparison([12, 18, 22, 28, 55, 140, 230, 210, 165, 85, 35, 12], [15, 20, 25, 30, 60, 150, 250, 230, 180, 100, 40, 15], [14, 17, 23, 29, 34, 36, 31, 29, 30, 26, 20, 15], [13, 16, 22, 28, 33, 35, 30, 28, 29, 25, 19, 14]),
+          "haryana": buildComparison([10, 15, 20, 25, 50, 130, 220, 200, 155, 80, 30, 10], [12, 18, 22, 28, 55, 140, 230, 210, 165, 85, 35, 12], [15, 18, 24, 30, 35, 37, 32, 30, 31, 27, 21, 16], [14, 17, 23, 29, 34, 36, 31, 29, 30, 26, 20, 15]),
+          "maharashtra": buildComparison([5, 8, 15, 25, 55, 180, 350, 320, 250, 120, 45, 8], [8, 10, 18, 30, 60, 200, 380, 350, 280, 140, 50, 10], [24, 26, 29, 32, 34, 30, 26, 25, 26, 28, 26, 24], [23, 25, 28, 31, 33, 29, 25, 24, 25, 27, 25, 23]),
+          "karnataka": buildComparison([8, 12, 20, 40, 80, 120, 100, 110, 130, 140, 70, 15], [10, 15, 22, 45, 85, 130, 110, 120, 140, 150, 75, 18], [24, 26, 29, 31, 30, 26, 24, 24, 25, 25, 24, 23], [23, 25, 28, 30, 29, 25, 23, 23, 24, 24, 23, 22]),
+          "uttar pradesh": buildComparison([8, 12, 15, 20, 35, 100, 250, 260, 180, 60, 15, 5], [10, 15, 18, 22, 40, 110, 270, 280, 200, 70, 18, 6], [16, 19, 26, 33, 38, 37, 31, 29, 30, 28, 22, 17], [15, 18, 25, 32, 37, 36, 30, 28, 29, 27, 21, 16]),
+          "west bengal": buildComparison([10, 18, 30, 55, 120, 250, 320, 280, 220, 130, 30, 8], [12, 20, 35, 60, 130, 270, 350, 300, 240, 140, 35, 10], [20, 23, 28, 31, 33, 32, 30, 30, 30, 29, 25, 20], [19, 22, 27, 30, 32, 31, 29, 29, 29, 28, 24, 19]),
+          "andhra pradesh": buildComparison([8, 12, 18, 30, 60, 80, 100, 120, 160, 180, 80, 12], [10, 15, 20, 35, 65, 90, 110, 130, 170, 190, 85, 15], [26, 29, 33, 36, 38, 35, 30, 29, 30, 30, 27, 25], [25, 28, 32, 35, 37, 34, 29, 28, 29, 29, 26, 24]),
+          "gujarat": buildComparison([3, 5, 8, 15, 30, 100, 220, 200, 140, 50, 12, 3], [5, 8, 10, 18, 35, 110, 240, 220, 160, 60, 15, 5], [20, 23, 28, 33, 37, 34, 29, 28, 29, 30, 25, 21], [19, 22, 27, 32, 36, 33, 28, 27, 28, 29, 24, 20]),
+        };
+        setData(fallback[user.region!] ?? fallback["karnataka"]);
+      })
+      .finally(() => setLoading(false));
   }, [user?.region]);
 
   if (!user?.region) return null;
@@ -129,7 +56,7 @@ export default function HistoricalComparison() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {data && (
+        {data && !loading ? (
           <div className="space-y-8">
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -173,8 +100,37 @@ export default function HistoricalComparison() {
               </ResponsiveContainer>
             </div>
           </div>
+        ) : (
+          <div className="space-y-8">
+            <div className="h-[300px] bg-muted/30 rounded-lg animate-pulse" />
+            <div className="h-[300px] bg-muted/30 rounded-lg animate-pulse" />
+          </div>
         )}
       </CardContent>
     </Card>
   );
+}
+
+function buildComparison(rainThis: number[], rainLast: number[], tempThis: number[], tempLast: number[]): ComparisonResult {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const rainfall = months.map((month, i) => ({
+    month,
+    thisYear: rainThis[i],
+    lastYear: rainLast[i],
+    diff: parseFloat((rainThis[i] - rainLast[i]).toFixed(2)),
+    diffPercent: parseFloat(((rainThis[i] - rainLast[i]) / Math.max(1, rainLast[i]) * 100).toFixed(1)),
+  }));
+  const temperature = months.map((month, i) => ({
+    month,
+    thisYear: tempThis[i],
+    lastYear: tempLast[i],
+    diff: parseFloat((tempThis[i] - tempLast[i]).toFixed(2)),
+    diffPercent: parseFloat(((tempThis[i] - tempLast[i]) / Math.max(1, tempLast[i]) * 100).toFixed(1)),
+  }));
+  return {
+    rainfall,
+    temperature,
+    annualRainfallDiff: rainfall.reduce((s, m) => s + m.diff, 0),
+    annualTempDiff: temperature.reduce((s, m) => s + m.diff, 0),
+  };
 }
