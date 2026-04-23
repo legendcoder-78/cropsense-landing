@@ -38,15 +38,23 @@ export async function fetchAIInsightsForState(state: string, cropList: string[])
   const dailyPrecip = weatherData.daily?.precipitation_sum;
 
   // 3. Fetch News from NewsAPI
-  const newsRes = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(state + " agriculture crop weather")}&apiKey=${NEWS_API_KEY}&language=en&sortBy=publishedAt&pageSize=5`);
-  const newsData = await newsRes.json();
-
-  const newsHeadlines = newsData.articles?.map((a: any) => ({
-    title: a.title,
-    description: a.description,
-    source: a.source?.name,
-    date: a.publishedAt
-  })) || [];
+  let newsHeadlines = [];
+  try {
+    const newsRes = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(state + " agriculture crop weather")}&apiKey=${NEWS_API_KEY}&language=en&sortBy=publishedAt&pageSize=5`);
+    if (newsRes.ok) {
+      const newsData = await newsRes.json();
+      newsHeadlines = newsData.articles?.map((a: any) => ({
+        title: a.title,
+        description: a.description,
+        source: a.source?.name,
+        date: a.publishedAt
+      })) || [];
+    } else {
+      console.warn(`NewsAPI in aiService returned ${newsRes.status}. Continuing with weather context only.`);
+    }
+  } catch (newsErr) {
+    console.error("NewsAPI in aiService failed:", newsErr);
+  }
 
   // 4. Construct Prompt for Gemini
   const prompt = `
@@ -95,8 +103,8 @@ Generate an analysis object with the exact following interface:
 }
 `;
 
-  // 5. Generate with Gemini
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  // 5. Generate with Gemini (Strictly gemini-2.5-flash)
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const result = await model.generateContent(prompt);
   let responseText = result.response.text();
   

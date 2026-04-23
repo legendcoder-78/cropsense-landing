@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // API Keys
-const NEWS_API_KEY = "e802b7548e6343a581c85acef1ae3d8b";
-const GEMINI_API_KEY = "AIzaSyCsC64OY8soK0FdoHZ4NSwgiFEVNatafZU";
+const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY || "";
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export interface DistrictWeather {
@@ -65,15 +65,24 @@ export async function generateLiveAIAgentOverview(state: string, district: strin
     };
 
     // 3. RAG Retrieve: Fetch Live News (Scrape via NewsAPI)
-    const newsRes = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(state + " agriculture crop climate")}&apiKey=${NEWS_API_KEY}&language=en&sortBy=relevancy&pageSize=10`);
-    const newsData = await newsRes.json();
-    
-    const articles = newsData.articles?.map((a: any) => ({
-      title: a.title,
-      description: a.description,
-      source: a.source?.name,
-      url: a.url
-    })) || [];
+    let articles = [];
+    try {
+      const newsRes = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(state + " agriculture crop climate")}&apiKey=${NEWS_API_KEY}&language=en&sortBy=relevancy&pageSize=10`);
+      if (newsRes.ok) {
+        const newsData = await newsRes.json();
+        articles = newsData.articles?.map((a: any) => ({
+          title: a.title,
+          description: a.description,
+          source: a.source?.name,
+          url: a.url
+        })) || [];
+      } else {
+        console.warn(`NewsAPI returned status ${newsRes.status}. Proceeding with weather data only.`);
+      }
+    } catch (newsErr) {
+      console.error("NewsAPI Fetch Failed (likely CORS or network):", newsErr);
+      // We don't throw here, we just proceed with no news context to let Gemini work with weather data
+    }
 
     // 4. RAG Augment: Construct the System Prompt
     const prompt = `
@@ -103,27 +112,13 @@ Provide your response ONLY in valid JSON format matching this exact interface:
 Do not use markdown blocks around the JSON.
 `;
 
-    // 5. RAG Generate: Ask Gemini (with fallback)
-    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"];
-    let text = "";
-    
-    for (const modelName of modelsToTry) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
-        text = result.response.text();
-        break; // Success
-      } catch (err: any) {
-        if (err?.message?.includes("404") || err?.status === 404) {
-          console.warn(`Model ${modelName} failed with 404, trying next...`);
-          continue;
-        }
-        throw err; // Re-throw other errors
-      }
-    }
+    // 5. RAG Generate: Ask Gemini (Strictly gemini-2.5-flash)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent(prompt);
+    let text = result.response.text();
     
     if (!text) {
-      throw new Error("All configured Gemini models failed to respond.");
+      throw new Error("Gemini 2.5 model failed to respond.");
     }
     
     text = text.replace(/^```json/m, '').replace(/^```/m, '').trim();

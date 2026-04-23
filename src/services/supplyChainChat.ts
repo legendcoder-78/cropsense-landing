@@ -70,32 +70,12 @@ export async function askSupplyChainDataQuestion(
 
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   const prompt = buildPrompt(trimmedQuestion, context);
-  const modelsToTry = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-flash-latest",
-  ];
-
-  let responseText = "";
-
-  for (const modelName of modelsToTry) {
-    try {
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent(prompt);
-      responseText = result.response.text().trim();
-      if (responseText) {
-        break;
-      }
-    } catch (error: any) {
-      if (error?.message?.includes("404") || error?.status === 404) {
-        continue;
-      }
-      throw error;
-    }
-  }
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const result = await model.generateContent(prompt);
+  const responseText = result.response.text().trim();
 
   if (!responseText) {
-    throw new Error("Chatbot could not generate a response right now.");
+    throw new Error("Gemini 2.5 chatbot model is currently unavailable.");
   }
 
   return responseText;

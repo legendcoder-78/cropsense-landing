@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import newsSites from "@/data/news_sites.json";
 import providerSites from "@/data/provider_sites.json";
 
-const GEMINI_API_KEY = "AIzaSyBZTIz6yctsWgc5bS6fhiPtBOE7ltF1PCA";
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export interface SupplyChainInsight {
